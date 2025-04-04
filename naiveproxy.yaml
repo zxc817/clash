@@ -1,17 +1,16 @@
 proxies:
-  - name: naiveproxy
-    type: https
-    server: naive-ztunnel.kooldns.xyz
+  - name: "NaiveProxy"
+    type: http
+    server: dummy.cfargotunnel.com
     port: 443
-    username: hello
-    password: 12345678
-    skip-cert-verify: true
+    username: user
+    password: pass
 
 proxy-groups:
-  - name: 🌍 Proxy
+  - name: "Auto"
     type: select
     proxies:
-      - naiveproxy
+      - "NaiveProxy"
 
 rules:
-  - MATCH,🌍 Proxy
+  - MATCH,Auto
