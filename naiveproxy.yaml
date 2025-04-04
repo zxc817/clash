@@ -1,0 +1,17 @@
+proxies:
+  - name: naiveproxy
+    type: https
+    server: naive-ztunnel.kooldns.xyz
+    port: 443
+    username: hello
+    password: 12345678
+    skip-cert-verify: true
+
+proxy-groups:
+  - name: 🌍 Proxy
+    type: select
+    proxies:
+      - naiveproxy
+
+rules:
+  - MATCH,🌍 Proxy
