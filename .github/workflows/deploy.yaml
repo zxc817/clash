@@ -1,0 +1,47 @@
+name: Deploy NaiveProxy + Cloudflare Tunnel
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download cloudflared
+        run: |
+          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+          chmod +x cloudflared-linux-amd64
+          sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+
+      - name: Create tunnel and run naiveproxy
+        run: |
+          mkdir -p ~/.cloudflared
+
+          # 登录 tunnel 并创建新的 tunnel
+          cloudflared tunnel login
+          
+          # 创建 tunnel 配置文件
+          cloudflared tunnel create naiveproxy-tunnel
+
+          echo 'url: http://localhost:8080' > ~/.cloudflared/config.yml
+          echo 'tunnel: $(cloudflared tunnel list | grep naiveproxy-tunnel | awk "{print \$1}")' >> ~/.cloudflared/config.yml
+          echo 'credentials-file: /root/.cloudflared/naiveproxy-tunnel.json' >> ~/.cloudflared/config.yml
+
+          # 启动一个假的 http 服务作为 NaïveProxy 占位（后续改成真正的）
+          nohup python3 -m http.server 8080 &
+
+          # 启动 cloudflared tunnel
+          nohup cloudflared tunnel run naiveproxy-tunnel &
+          sleep 10
+          
+          # 打印分配的域名（你需要从这里查找）
+          echo "Your tunnel domain (copy this):"
+          cat ~/.cloudflared/config.yml
+
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
